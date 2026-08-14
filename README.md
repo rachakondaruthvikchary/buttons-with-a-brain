@@ -1,5 +1,7 @@
 # Buttons with a Brain
 
+🚀 **[View the Live Demo!](https://rachakondaruthvikchary.github.io/buttons-with-a-brain/)**
+
 A single AI "Generate" button, wired up with a real lifecycle: it thinks, it succeeds, it sometimes fails — and it never leaves you guessing which state it's in. Every transition uses compositor-friendly transforms and opacity, tuned durations, and easing chosen on purpose, not by default.
 
 ## Features
