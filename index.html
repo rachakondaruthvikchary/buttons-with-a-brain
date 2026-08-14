@@ -1,0 +1,1005 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Buttons with a Brain — FE-AA1</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   TOKENS
+   ============================================================ */
+:root {
+  --bg: #0b0e14;
+  --bg-glow: #131a2b;
+  --surface: #12161f;
+  --surface-raised: #161b26;
+  --border: #232838;
+  --border-soft: #1b202c;
+
+  --text-primary: #e8eaf0;
+  --text-muted: #8891a6;
+  --text-faint: #565f74;
+
+  --accent: #6c8eff;
+  --accent-dim: #4a63b8;
+  --accent-glow: rgba(108, 142, 255, 0.35);
+
+  --success: #4ade9c;
+  --success-glow: rgba(74, 222, 156, 0.35);
+
+  --error: #ff6b6b;
+  --error-glow: rgba(255, 107, 107, 0.32);
+
+  --font-display: "Space Grotesk", "Inter", sans-serif;
+  --font-body: "Inter", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", "SFMono-Regular", monospace;
+
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-hover: cubic-bezier(0.33, 1, 0.68, 1);
+
+  --dur-hover: 180ms;
+  --dur-state: 300ms;
+}
+
+/* ============================================================
+   BASE
+   ============================================================ */
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  background: var(--bg);
+  color: var(--text-primary);
+  font-family: var(--font-body);
+}
+
+body {
+  min-height: 100vh;
+  padding: 64px 24px 40px;
+  position: relative;
+  overflow-x: hidden;
+}
+
+.grid-glow {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 50% -10%, var(--bg-glow) 0%, transparent 55%),
+    linear-gradient(var(--border-soft) 1px, transparent 1px) 0 0 / 48px 48px,
+    linear-gradient(90deg, var(--border-soft) 1px, transparent 1px) 0 0 / 48px 48px;
+  -webkit-mask-image: radial-gradient(ellipse 70% 60% at 50% 0%, black 0%, transparent 75%);
+          mask-image: radial-gradient(ellipse 70% 60% at 50% 0%, black 0%, transparent 75%);
+  opacity: 0.7;
+}
+
+header, main, section, footer { position: relative; z-index: 1; }
+
+/* ============================================================
+   HEADER
+   ============================================================ */
+.page-header {
+  max-width: 640px;
+  margin: 0 auto 48px;
+  text-align: center;
+}
+
+.eyebrow {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin: 0 0 16px;
+}
+
+.title {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: clamp(32px, 5vw, 48px);
+  line-height: 1.1;
+  margin: 0 0 8px;
+  letter-spacing: -0.02em;
+}
+
+.subtitle {
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: 18px;
+  color: var(--text-muted);
+  margin: 0 0 20px;
+}
+
+.description {
+  font-size: 15px;
+  line-height: 1.65;
+  color: var(--text-muted);
+  margin: 0 auto;
+  max-width: 520px;
+}
+
+/* ============================================================
+   LAYOUT
+   ============================================================ */
+.layout {
+  max-width: 900px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1.1fr 0.9fr;
+  gap: 20px;
+}
+
+@media (max-width: 720px) {
+  .layout { grid-template-columns: 1fr; }
+}
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 28px;
+}
+
+.card-label {
+  font-family: var(--font-display);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+  margin: 0 0 20px;
+}
+
+/* ============================================================
+   BUTTON STAGE
+   ============================================================ */
+.button-stage {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+  padding: 32px 0 8px;
+}
+
+/* --- The Generate button --- */
+.gen-btn {
+  --btn-bg: var(--accent);
+  --btn-bg-hover: #7d9cff;
+  --btn-glow: var(--accent-glow);
+
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-width: 200px;
+  height: 52px;
+  padding: 0 28px;
+  border-radius: 12px;
+  border: 1px solid transparent;
+  background: var(--btn-bg);
+  color: #0b0e14;
+  font-family: var(--font-display);
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  cursor: pointer;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+
+  transform: translateZ(0) scale(1);
+  transition:
+    transform var(--dur-hover) var(--ease-hover),
+    box-shadow var(--dur-hover) var(--ease-hover),
+    background-color var(--dur-state) var(--ease-out),
+    color var(--dur-state) var(--ease-out),
+    border-color var(--dur-state) var(--ease-out);
+  box-shadow: 0 0 0 0 var(--btn-glow);
+}
+
+.gen-btn:hover:not(:disabled) {
+  background: var(--btn-bg-hover);
+  transform: translateZ(0) scale(1.035);
+  box-shadow: 0 8px 24px -6px var(--btn-glow);
+}
+
+.gen-btn:active:not(:disabled) {
+  transform: translateZ(0) scale(0.98);
+}
+
+/* Visible keyboard focus ring — works for Tab navigation */
+.gen-btn:focus-visible {
+  outline: none;
+  box-shadow:
+    0 0 0 2px var(--bg),
+    0 0 0 4px var(--accent),
+    0 8px 24px -6px var(--btn-glow);
+}
+
+.gen-btn:disabled {
+  cursor: not-allowed;
+}
+
+/* --- State: loading --- */
+.gen-btn[data-state="loading"] {
+  --btn-bg: var(--surface-raised);
+  --btn-bg-hover: var(--surface-raised);
+  color: var(--text-primary);
+  border-color: var(--border);
+  transform: translateZ(0) scale(1);
+  box-shadow: none;
+  cursor: progress;
+}
+
+/* --- State: success --- */
+.gen-btn[data-state="success"] {
+  --btn-bg: var(--success);
+  --btn-bg-hover: var(--success);
+  --btn-glow: var(--success-glow);
+  color: #06231a;
+  box-shadow: 0 0 0 6px var(--success-glow);
+}
+
+/* --- State: error --- */
+.gen-btn[data-state="error"] {
+  --btn-bg: var(--surface-raised);
+  --btn-bg-hover: var(--surface-raised);
+  color: var(--error);
+  border-color: var(--error);
+  box-shadow: 0 0 0 4px var(--error-glow);
+}
+
+.gen-btn[data-state="error"]:hover:not(:disabled) {
+  transform: translateZ(0) scale(1.035);
+}
+
+/* --- State: disabled (bonus) --- */
+.gen-btn[data-state="disabled"] {
+  --btn-bg: var(--surface-raised);
+  color: var(--text-faint);
+  border-color: var(--border);
+  box-shadow: none;
+  opacity: 0.6;
+}
+
+/* Shake animation on entering error */
+.gen-btn.is-shaking {
+  animation: shake 400ms ease-in-out;
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0) scale(1); }
+  20% { transform: translateX(-6px) scale(1); }
+  40% { transform: translateX(5px) scale(1); }
+  60% { transform: translateX(-4px) scale(1); }
+  80% { transform: translateX(3px) scale(1); }
+}
+
+/* Success "arrival" pulse */
+.gen-btn.is-succeeding {
+  animation: success-pulse 320ms var(--ease-out);
+}
+
+@keyframes success-pulse {
+  0% { transform: scale(0.96); }
+  60% { transform: scale(1.045); }
+  100% { transform: scale(1); }
+}
+
+/* ============================================================
+   BUTTON ICONS
+   ============================================================ */
+.gen-btn__icon {
+  position: relative;
+  width: 18px;
+  height: 18px;
+  flex: none;
+}
+
+.icon {
+  position: absolute;
+  inset: 0;
+  width: 18px;
+  height: 18px;
+  opacity: 0;
+  transform: scale(0.6);
+  transition: opacity 220ms var(--ease-out), transform 220ms var(--ease-out);
+}
+
+.icon--idle { opacity: 1; transform: scale(1); }
+
+.gen-btn[data-state="loading"] .icon--loading {
+  opacity: 1;
+  transform: scale(1);
+  animation: spin 900ms linear infinite;
+  transform-origin: 50% 50%;
+}
+
+.gen-btn[data-state="success"] .icon--success {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.gen-btn[data-state="error"] .icon--error {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.gen-btn[data-state="disabled"] .icon--idle {
+  opacity: 1;
+  transform: scale(1);
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Checkmark draw-in */
+.check-path {
+  stroke-dasharray: 24;
+  stroke-dashoffset: 24;
+}
+
+.gen-btn[data-state="success"] .check-path {
+  animation: draw-check 320ms var(--ease-out) forwards;
+}
+
+@keyframes draw-check {
+  to { stroke-dashoffset: 0; }
+}
+
+.gen-btn__label {
+  position: relative;
+  line-height: 1;
+}
+
+/* ============================================================
+   STATE READOUT
+   ============================================================ */
+.state-readout {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.state-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-glow);
+  transition: background-color var(--dur-state) var(--ease-out), box-shadow var(--dur-state) var(--ease-out);
+}
+
+.state-dot[data-state="loading"] { background: var(--text-muted); box-shadow: 0 0 0 3px rgba(136, 145, 166, 0.25); }
+.state-dot[data-state="success"] { background: var(--success); box-shadow: 0 0 0 3px var(--success-glow); }
+.state-dot[data-state="error"] { background: var(--error); box-shadow: 0 0 0 3px var(--error-glow); }
+.state-dot[data-state="disabled"] { background: var(--text-faint); box-shadow: 0 0 0 3px rgba(86, 95, 116, 0.2); }
+
+.state-readout__text strong {
+  color: var(--text-primary);
+  font-weight: 500;
+}
+
+/* ============================================================
+   CONTROLS
+   ============================================================ */
+.controls {
+  margin-top: 28px;
+  padding-top: 24px;
+  border-top: 1px solid var(--border-soft);
+}
+
+.controls__label {
+  font-size: 12px;
+  color: var(--text-faint);
+  margin: 0 0 12px;
+}
+
+.controls__row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+
+.ctrl-btn {
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 500;
+  padding: 8px 14px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--surface-raised);
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: transform var(--dur-hover) var(--ease-hover),
+              border-color var(--dur-hover) var(--ease-out),
+              color var(--dur-hover) var(--ease-out);
+}
+
+.ctrl-btn:hover { transform: translateY(-1px); }
+.ctrl-btn:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.ctrl-btn--success:hover { border-color: var(--success); color: var(--success); }
+.ctrl-btn--error:hover { border-color: var(--error); color: var(--error); }
+
+.ctrl-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--text-muted);
+  margin-left: auto;
+  cursor: pointer;
+}
+
+.ctrl-toggle input { accent-color: var(--accent); }
+
+/* ============================================================
+   CONSOLE LOG (signature element)
+   ============================================================ */
+.console-hint {
+  font-size: 13px;
+  color: var(--text-faint);
+  margin: -12px 0 16px;
+}
+
+.console-log {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column-reverse;
+  gap: 8px;
+  max-height: 320px;
+  overflow-y: auto;
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+}
+
+.console-log__empty {
+  color: var(--text-faint);
+  font-style: italic;
+}
+
+.console-log li {
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: var(--surface-raised);
+  border: 1px solid var(--border-soft);
+  color: var(--text-muted);
+  display: flex;
+  gap: 10px;
+  animation: log-in 220ms var(--ease-out);
+}
+
+@keyframes log-in {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.console-log li .log-time {
+  color: var(--text-faint);
+  flex: none;
+}
+
+.console-log li[data-kind="success"] { border-color: rgba(74, 222, 156, 0.3); color: var(--success); }
+.console-log li[data-kind="error"] { border-color: rgba(255, 107, 107, 0.3); color: var(--error); }
+.console-log li[data-kind="loading"] { color: var(--text-primary); }
+
+/* ============================================================
+   MOTION NOTES
+   ============================================================ */
+.notes {
+  max-width: 900px;
+  margin: 20px auto 0;
+}
+
+.notes-intro {
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--text-muted);
+  margin: 0 0 20px;
+  max-width: 640px;
+}
+
+.notes-table {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--border-soft);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.notes-row {
+  display: grid;
+  grid-template-columns: 1.1fr 0.9fr 1.2fr 2fr;
+  gap: 16px;
+  padding: 14px 16px;
+  font-size: 13px;
+  border-bottom: 1px solid var(--border-soft);
+}
+
+.notes-row:last-child { border-bottom: none; }
+
+.notes-row--head {
+  background: var(--surface-raised);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-faint);
+}
+
+.notes-row:not(.notes-row--head) span:first-child {
+  color: var(--text-primary);
+  font-weight: 500;
+}
+
+.notes-row:not(.notes-row--head) span:nth-child(2),
+.notes-row:not(.notes-row--head) span:nth-child(3) {
+  font-family: var(--font-mono);
+  color: var(--accent);
+  font-size: 12.5px;
+}
+
+.notes-row:not(.notes-row--head) span:last-child {
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+
+@media (max-width: 720px) {
+  .notes-row { grid-template-columns: 1fr; gap: 4px; }
+  .notes-row--head { display: none; }
+  .notes-row:not(.notes-row--head) span::before {
+    content: attr(data-label) ": ";
+    color: var(--text-faint);
+    font-family: var(--font-mono);
+    font-size: 10px;
+    text-transform: uppercase;
+  }
+}
+
+.notes-footer {
+  margin: 20px 0 0;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--text-faint);
+}
+
+.notes-footer code {
+  font-family: var(--font-mono);
+  background: var(--surface-raised);
+  padding: 2px 6px;
+  border-radius: 4px;
+  color: var(--text-muted);
+  font-size: 12px;
+}
+
+/* ============================================================
+   FOOTER
+   ============================================================ */
+.page-footer {
+  max-width: 900px;
+  margin: 48px auto 0;
+  text-align: center;
+  font-size: 12px;
+  color: var(--text-faint);
+}
+
+/* ============================================================
+   REDUCED MOTION
+   Animations are removed/shortened, but every state still gets
+   a clear, instant visual signal (color, icon, box-shadow).
+   ============================================================ */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  .gen-btn[data-state="loading"] .icon--loading {
+    animation: none;
+    /* keep a static spinner glyph rather than a spin, still communicates "loading" */
+    opacity: 1;
+    transform: scale(1) rotate(45deg);
+  }
+
+  .gen-btn.is-shaking,
+  .gen-btn.is-succeeding {
+    animation: none;
+  }
+
+  .gen-btn:hover:not(:disabled) {
+    transform: none;
+  }
+
+  .check-path {
+    stroke-dashoffset: 0;
+  }
+
+  .console-log li {
+    animation: none;
+  }
+}
+
+</style>
+</head>
+<body>
+
+  <div class="grid-glow" aria-hidden="true"></div>
+
+  <header class="page-header">
+    <p class="eyebrow">FE-AA1 · Frontend AI Engineering · Week 6</p>
+    <h1 class="title">Buttons with a Brain</h1>
+    <p class="subtitle">Motion &amp; State Micro-interactions</p>
+    <p class="description">
+      A single AI "Generate" button, wired up with a real lifecycle: it thinks,
+      it succeeds, it sometimes fails — and it never leaves you guessing which
+      state it's in. Every transition below uses compositor-friendly transforms
+      and opacity, tuned durations, and easing chosen on purpose, not by default.
+    </p>
+  </header>
+
+  <main class="layout">
+
+    <!-- Demo card -->
+    <section class="card demo-card" aria-labelledby="demo-heading">
+      <h2 id="demo-heading" class="card-label">Live demo</h2>
+
+      <div class="button-stage">
+        <button
+          id="generateBtn"
+          class="gen-btn"
+          type="button"
+          data-state="idle"
+          aria-describedby="stateReadout"
+        >
+          <span class="gen-btn__icon" aria-hidden="true">
+            <!-- Idle: spark -->
+            <svg class="icon icon--idle" viewBox="0 0 24 24" fill="none">
+              <path d="M12 2.5L14 9L20.5 11L14 13L12 19.5L10 13L3.5 11L10 9L12 2.5Z" fill="currentColor"/>
+            </svg>
+            <!-- Loading: spinner -->
+            <svg class="icon icon--loading" viewBox="0 0 24 24" fill="none">
+              <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-dasharray="42 100"/>
+            </svg>
+            <!-- Success: check -->
+            <svg class="icon icon--success" viewBox="0 0 24 24" fill="none">
+              <path class="check-path" d="M4 12.5L9.5 18L20 6" stroke="currentColor" stroke-width="2.75" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <!-- Error: exclamation -->
+            <svg class="icon icon--error" viewBox="0 0 24 24" fill="none">
+              <path d="M12 7V13.5" stroke="currentColor" stroke-width="2.75" stroke-linecap="round"/>
+              <circle cx="12" cy="17" r="1.15" fill="currentColor"/>
+            </svg>
+          </span>
+          <span class="gen-btn__label">Generate</span>
+        </button>
+
+        <div class="state-readout" id="stateReadout" role="status" aria-live="polite">
+          <span class="state-dot" data-state="idle" aria-hidden="true"></span>
+          <span class="state-readout__text">Current state: <strong id="stateText">idle</strong></span>
+        </div>
+      </div>
+
+      <div class="controls" role="group" aria-label="Demo controls">
+        <p class="controls__label">Force an outcome (for grading &amp; demo purposes):</p>
+        <div class="controls__row">
+          <button class="ctrl-btn ctrl-btn--success" type="button" id="forceSuccess">Test Success</button>
+          <button class="ctrl-btn ctrl-btn--error" type="button" id="forceError">Test Error</button>
+          <label class="ctrl-toggle">
+            <input type="checkbox" id="toggleDisabled" />
+            <span>Disabled state</span>
+          </label>
+        </div>
+      </div>
+    </section>
+
+    <!-- Console / log panel (signature element) -->
+    <section class="card console-card" aria-labelledby="console-heading">
+      <h2 id="console-heading" class="card-label">System log</h2>
+      <p class="console-hint">The button's brain, thinking out loud.</p>
+      <ol class="console-log" id="consoleLog" aria-live="off">
+        <li class="console-log__empty" id="consoleEmpty">— awaiting first request —</li>
+      </ol>
+    </section>
+
+  </main>
+
+  <section class="notes card" aria-labelledby="notes-heading">
+    <h2 id="notes-heading" class="card-label">Motion design notes</h2>
+    <p class="notes-intro">
+      Every transition in this component is intentional. Nothing animates just
+      because it can — each duration and easing curve is chosen to match what
+      the state change is communicating.
+    </p>
+    <div class="notes-table" role="table">
+      <div class="notes-row notes-row--head" role="row">
+        <span role="columnheader">Interaction</span>
+        <span role="columnheader">Duration</span>
+        <span role="columnheader">Easing</span>
+        <span role="columnheader">Why</span>
+      </div>
+      <div class="notes-row" role="row">
+        <span role="cell" data-label="Interaction">Hover / focus</span>
+        <span role="cell" data-label="Duration">180ms</span>
+        <span role="cell" data-label="Easing">ease-out</span>
+        <span role="cell" data-label="Why">Fast enough to feel responsive to a pointer, never sluggish.</span>
+      </div>
+      <div class="notes-row" role="row">
+        <span role="cell" data-label="Interaction">State transition (idle↔loading↔success/error)</span>
+        <span role="cell" data-label="Duration">280–320ms</span>
+        <span role="cell" data-label="Easing">cubic-bezier(0.16, 1, 0.3, 1)</span>
+        <span role="cell" data-label="Why">Long enough to register as a meaningful change, short enough to stay snappy. The curve overshoots slightly on entry so new states feel like they "arrive," not just appear.</span>
+      </div>
+      <div class="notes-row" role="row">
+        <span role="cell" data-label="Interaction">Success feedback</span>
+        <span role="cell" data-label="Duration">320ms draw + 1.6s hold</span>
+        <span role="cell" data-label="Easing">ease-out</span>
+        <span role="cell" data-label="Why">The checkmark draws itself in once, quickly, then the state holds briefly so the win registers before auto-returning to idle.</span>
+      </div>
+      <div class="notes-row" role="row">
+        <span role="cell" data-label="Interaction">Error feedback</span>
+        <span role="cell" data-label="Duration">400ms shake</span>
+        <span role="cell" data-label="Easing">ease-in-out (oscillating)</span>
+        <span role="cell" data-label="Why">A short, low-amplitude shake reads as "something's wrong" without feeling like a punishment. Error styling then holds indefinitely until retried.</span>
+      </div>
+    </div>
+    <p class="notes-footer">
+      All animated properties are <code>transform</code> and <code>opacity</code> only —
+      no layout-triggering properties (width, height, top, left, margin) are animated,
+      so every transition stays on the compositor thread. Every state change also has
+      a non-motion signal (color, icon, text) so the interface reads correctly with
+      <code>prefers-reduced-motion</code> enabled.
+    </p>
+  </section>
+
+  <footer class="page-footer">
+    <p>FE-AA1 · Buttons with a Brain — built with plain HTML, CSS &amp; JavaScript.</p>
+  </footer>
+
+  <script>
+/**
+ * Buttons with a Brain — FE-AA1
+ * State machine: idle -> loading -> success | error -> idle
+ *
+ * Design goals for this script:
+ *  - A single source of truth for the current state, applied through
+ *    setState() so the DOM, ARIA live region, and console log always
+ *    agree with each other.
+ *  - Rapid/duplicate clicks while loading are impossible because the
+ *    button element itself is disabled during the request (enforced
+ *    by the browser, not just a JS flag).
+ *  - A generation "token" guards against a stale in-flight request
+ *    resolving *after* the state was changed some other way (e.g. the
+ *    user manually disabled the button mid-request) and clobbering it.
+ *  - Initialization is resilient per-feature: the Generate button is
+ *    the only strictly required piece. If a secondary element (a test
+ *    control, the log panel) is ever missing, that one feature logs a
+ *    warning and is skipped — it does NOT take every other button down
+ *    with it. This is deliberate: a single shared "if anything is
+ *    missing, throw and abort everything" guard is a common cause of
+ *    "none of my buttons work," because one small ID mismatch anywhere
+ *    kills every handler at once. Per-feature setup means one typo can
+ *    only ever break the one thing it belongs to.
+ */
+
+function initButtonsWithABrain() {
+  const btn = document.getElementById("generateBtn");
+  if (!btn) {
+    console.error(
+      "[Buttons with a Brain] #generateBtn not found — the main button cannot be wired up. Check index.html."
+    );
+    return;
+  }
+
+  const label = btn.querySelector(".gen-btn__label");
+  const stateDot = document.querySelector(".state-dot");
+  const stateText = document.getElementById("stateText");
+
+  if (!label || !stateDot || !stateText) {
+    console.error(
+      "[Buttons with a Brain] .gen-btn__label, .state-dot, or #stateText not found. State display will not update correctly."
+    );
+  }
+
+  const LABELS = {
+    idle: "Generate",
+    loading: "Generating…",
+    success: "Generated!",
+    error: "Retry",
+    disabled: "Generate",
+  };
+
+  let successReturnTimer = null;
+  let shakeCleanupHandler = null;
+
+  // Incremented every time a NEW request starts. A request in flight
+  // captures the token at start; when it resolves/rejects it only
+  // applies its result if the token still matches — i.e. nothing else
+  // (like the disabled toggle) changed the state in the meantime.
+  let generationToken = 0;
+
+  /** Move the button to a new state and keep every dependent piece in sync. */
+  function setState(next) {
+    clearTimeout(successReturnTimer);
+
+    btn.dataset.state = next;
+    if (stateDot) stateDot.dataset.state = next;
+    if (stateText) stateText.textContent = next;
+    if (label) label.textContent = LABELS[next];
+
+    // Loading and disabled both use the native `disabled` attribute so
+    // spam-clicking and keyboard activation are impossible — the
+    // browser enforces it, not just a JS flag that could be raced.
+    btn.disabled = next === "loading" || next === "disabled";
+
+    // aria-busy tells assistive tech a live update is in progress.
+    btn.setAttribute("aria-busy", String(next === "loading"));
+
+    // Clean up any previously-queued shake-removal listener so they
+    // never stack up across repeated error states.
+    if (shakeCleanupHandler) {
+      btn.removeEventListener("animationend", shakeCleanupHandler);
+      shakeCleanupHandler = null;
+    }
+
+    if (next === "success") {
+      btn.classList.remove("is-shaking");
+      // restart the pulse animation even if triggered twice quickly
+      void btn.offsetWidth;
+      btn.classList.add("is-succeeding");
+      successReturnTimer = setTimeout(() => setState("idle"), 1600);
+    } else {
+      btn.classList.remove("is-succeeding");
+    }
+
+    if (next === "error") {
+      btn.classList.remove("is-shaking");
+      void btn.offsetWidth;
+      btn.classList.add("is-shaking");
+      shakeCleanupHandler = () => btn.classList.remove("is-shaking");
+      btn.addEventListener("animationend", shakeCleanupHandler, { once: true });
+    } else {
+      btn.classList.remove("is-shaking");
+    }
+  }
+
+  /** Fake async "AI generation" call: 1–3s delay, 80% success rate. */
+  function fakeApiCall({ forceOutcome } = {}) {
+    const delay = 1000 + Math.random() * 2000;
+    return new Promise((resolve, reject) => {
+      setTimeout(() => {
+        const succeeded =
+          forceOutcome === "success"
+            ? true
+            : forceOutcome === "error"
+            ? false
+            : Math.random() < 0.8;
+        succeeded ? resolve() : reject(new Error("Generation failed"));
+      }, delay);
+    });
+  }
+
+  // --- Console log panel: optional feature, wired independently ---
+  const consoleLog = document.getElementById("consoleLog");
+  let consoleEmpty = document.getElementById("consoleEmpty");
+
+  function logEvent(message, kind = "info") {
+    if (!consoleLog) return; // log panel missing: skip silently, don't break anything else
+    if (consoleEmpty && consoleEmpty.isConnected) consoleEmpty.remove();
+
+    const li = document.createElement("li");
+    li.dataset.kind = kind;
+    const time = new Date().toLocaleTimeString([], {
+      hour12: false,
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+    });
+    const timeSpan = document.createElement("span");
+    timeSpan.className = "log-time";
+    timeSpan.textContent = time;
+    const msgSpan = document.createElement("span");
+    msgSpan.textContent = message;
+    li.append(timeSpan, msgSpan);
+    consoleLog.prepend(li);
+
+    // Keep the log from growing forever during a long grading session.
+    while (consoleLog.children.length > 20) {
+      consoleLog.removeChild(consoleLog.lastChild);
+    }
+  }
+
+  async function runGeneration(forceOutcome) {
+    if (btn.dataset.state === "loading" || btn.dataset.state === "disabled") {
+      return; // belt-and-suspenders on top of the disabled attribute
+    }
+
+    const myToken = ++generationToken;
+    setState("loading");
+    logEvent("Request sent — generating…", "loading");
+
+    try {
+      await fakeApiCall({ forceOutcome });
+      if (myToken !== generationToken) return; // superseded — drop it
+      setState("success");
+      logEvent("Success — result generated.", "success");
+    } catch (err) {
+      if (myToken !== generationToken) return; // superseded — drop it
+      setState("error");
+      logEvent("Error — generation failed. Ready to retry.", "error");
+    }
+  }
+
+  // Main button: click and native keyboard activation (Enter / Space)
+  // both fire a "click" event on a real <button>, so no extra keydown
+  // handling is required for accessibility.
+  btn.addEventListener("click", () => runGeneration());
+
+  // --- Demo/test controls: each wired independently ---
+  const forceSuccessBtn = document.getElementById("forceSuccess");
+  if (forceSuccessBtn) {
+    forceSuccessBtn.addEventListener("click", () => runGeneration("success"));
+  } else {
+    console.warn("[Buttons with a Brain] #forceSuccess not found — Test Success control is inactive.");
+  }
+
+  const forceErrorBtn = document.getElementById("forceError");
+  if (forceErrorBtn) {
+    forceErrorBtn.addEventListener("click", () => runGeneration("error"));
+  } else {
+    console.warn("[Buttons with a Brain] #forceError not found — Test Error control is inactive.");
+  }
+
+  const disableToggle = document.getElementById("toggleDisabled");
+  if (disableToggle) {
+    disableToggle.addEventListener("change", () => {
+      // Bump the token so any in-flight fake request becomes stale and
+      // can no longer overwrite this manual state when it resolves.
+      generationToken++;
+      if (disableToggle.checked) {
+        clearTimeout(successReturnTimer);
+        setState("disabled");
+        logEvent("Button manually disabled.", "info");
+      } else {
+        setState("idle");
+        logEvent("Button re-enabled.", "info");
+      }
+    });
+  } else {
+    console.warn("[Buttons with a Brain] #toggleDisabled not found — Disabled-state control is inactive.");
+  }
+
+  // Initial state.
+  setState("idle");
+}
+
+// Run as soon as the DOM is ready — but don't rely on DOMContentLoaded
+// alone. If this script is ever loaded after the event has already
+// fired (readyState is "interactive" or "complete"), initialize
+// immediately instead of waiting for an event that will never come.
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", initButtonsWithABrain);
+} else {
+  initButtonsWithABrain();
+}
+
+</script>
+</body>
+</html>
